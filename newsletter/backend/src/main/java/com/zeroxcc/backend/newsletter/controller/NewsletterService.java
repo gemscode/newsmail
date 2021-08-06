@@ -1,5 +1,11 @@
 package com.zeroxcc.backend.newsletter.controller;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
+import com.amazonaws.services.simpleemail.model.*;
 import com.zeroxcc.backend.newsletter.dao.*;
 import com.zeroxcc.backend.newsletter.model.*;
 import com.zeroxcc.backend.newsletter.utility.NewsletterStatus;
@@ -11,8 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,28 +40,16 @@ public class NewsletterService {
     @Autowired
     private ContentHTMLDAO contentHTMLDAO;
 
-
-    //@RequestMapping(method = RequestMethod.GET, path = "/publisher")
-    //public  List<PublisherApp> publisherApps () {
-    //    return Streamable.of(publisherAppDAO.findAll()).toList();
-    //}
-
     @PostMapping("/publish/{publisherAppId}/topic/{subscriptionTopicId}")
     @ResponseBody
     @Transactional
     public ResponseEntity publish(@PathVariable(name = "publisherAppId") String publisherAppId, @PathVariable(name = "subscriptionTopicId") String subscriptionTopicId, @RequestBody String content) {
-        log.info(" received request with " + content);
-        log.info(" received request with " + publisherAppId);
-        log.info(" received request with " + subscriptionTopicId);
-        String contentId = "";
 
         Optional<PublisherApp> publisherApp = publisherAppDAO.findById(UUID.fromString(publisherAppId));
 
         if (publisherApp.isPresent()) {
-            // get account
             PublisherAccount publisherAccount =  publisherApp.get().getAccount();
 
-            // get topic by name
             Optional<SubscriptionTopic> subscriptionTopic = subscriptionTopicDAO.findById(UUID.fromString(subscriptionTopicId));
             if (subscriptionTopic.isPresent()) {
 
@@ -75,15 +69,34 @@ public class NewsletterService {
 
                 contentHTMLDAO.save(contentHTML);
 
-                contentId = contentHTML.getId().toString();
-            } else {
-                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("error: something went wrong!");
+                return ResponseEntity.status(HttpStatus.OK).body(contentHTML.getId().toString());
             }
-        } else {
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("error: something went wrong!");
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(contentId);
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("error: something went wrong!");
+    }
+
+    @PostMapping("/email/{emailAddress}/topic/{subscriptionTopicId}/content/{contentId}")
+    @ResponseBody
+    public ResponseEntity email(@PathVariable(name = "emailAddress") String emailAddress, @PathVariable(name = "subscriptionTopicId") String subscriptionTopicId, @PathVariable(name = "contentId") String contentId) {
+        log.info("data received are: \n"+ emailAddress);
+        log.info("\n"+ subscriptionTopicId);
+        log.info("\n"+ contentId);
+        String response = "";
+
+        Optional<ContentHTML> contentHTML = contentHTMLDAO.findById(UUID.fromString(contentId));
+
+        if (contentHTML.isPresent()) {
+            Optional<SubscriptionTopic> subscriptionTopic = subscriptionTopicDAO.findById(UUID.fromString(subscriptionTopicId));
+
+            if (subscriptionTopic.isPresent())
+                response = sentEmail(emailAddress, subscriptionTopic.get().getName(), contentHTML.get().getContent());
+
+            if (response.equals("OK"))
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(response);
     }
 
     @GetMapping("/content/{id}")
@@ -118,5 +131,38 @@ public class NewsletterService {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public final String exceptionHandlerIllegalArgumentException(final IllegalArgumentException e) {
         return " ... invalid request ...";
+    }
+
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public final String exceptionHandlerIllegalArgumentException(final IOException e) {
+        return " ... invalid request ...";
+    }
+
+    private static final String FROM = "no-reply@feedback.rp78.zeroxcc.com";
+    private static final BasicAWSCredentials awsCreds = new BasicAWSCredentials("AKIAJRMEOET5JJXVP5TA", "hMpr+L1icJrUlK91lP/kR16LdVFjkdEIjjcv3P0s");
+    private static final AWSStaticCredentialsProvider awsCredsProvider = new AWSStaticCredentialsProvider(awsCreds);
+
+    private String sentEmail(String emailAddress, String subscriptionTopic, String emailContentHTML) {
+        try {
+            AmazonSimpleEmailService client = AmazonSimpleEmailServiceClientBuilder.standard()
+                            .withRegion(Regions.US_EAST_2).build();
+            SendEmailRequest request = new SendEmailRequest()
+                    .withDestination( new Destination().withToAddresses(emailAddress))
+                    .withMessage(new Message()
+                            .withBody(new Body() .withHtml(new Content().withCharset("UTF-8").withData(emailContentHTML)))
+                            .withSubject(new Content().withCharset("UTF-8").withData(subscriptionTopic)))
+                    .withSource(FROM)
+                    .withRequestCredentialsProvider(awsCredsProvider);
+                    // Comment or remove the next line if you are not using a
+                    // configuration set
+                    //.withConfigurationSetName(CONFIGSET);
+            client.sendEmail(request);
+
+            return "OK";
+        } catch (Exception ex) {
+            System.out.println("The email was not sent. Error message: " + ex.getMessage());
+            return ex.getMessage();
+        }
     }
 }

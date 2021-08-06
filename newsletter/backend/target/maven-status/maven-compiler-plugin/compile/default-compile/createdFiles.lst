@@ -17,6 +17,7 @@ com/zeroxcc/backend/newsletter/dao/ScheduleTaskDAO.class
 com/zeroxcc/backend/newsletter/model/ScheduleToDo.class
 com/zeroxcc/backend/newsletter/model/ScheduleDone.class
 com/zeroxcc/backend/newsletter/TestController.class
+com/zeroxcc/backend/newsletter/controller/SubscriptionService.class
 com/zeroxcc/backend/newsletter/dao/NewsletterDAO.class
 com/zeroxcc/backend/newsletter/dao/SubscriptionTopicDAO.class
 com/zeroxcc/backend/newsletter/controller/FillDataService.class
@@ -43,6 +44,8 @@ com/zeroxcc/backend/newsletter/utility/EnumTypePostgreSql.class
 com/zeroxcc/backend/newsletter/model/SubscriptionTopic.class
 com/zeroxcc/backend/newsletter/model/ContentMJML.class
 com/zeroxcc/backend/newsletter/model/PublisherAccount.class
+com/zeroxcc/backend/newsletter/repository/TopicRepository.class
+com/zeroxcc/backend/newsletter/controller/TopicService.class
 com/zeroxcc/backend/newsletter/configuration/SecurityConfig.class
 com/zeroxcc/backend/newsletter/model/Address.class
 com/zeroxcc/backend/newsletter/model/PublisherApp.class

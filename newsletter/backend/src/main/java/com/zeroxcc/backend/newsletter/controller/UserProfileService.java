@@ -24,7 +24,7 @@ public class UserProfileService {
     private UserProfileDAO userProfileDAO;
 
     @GetMapping
-    public List<UserProfile> getAllUserProfile() {
+    public List<UserProfile> getAll() {
         return Streamable.of(userProfileDAO.findAll()).toList();
     }
 
@@ -38,7 +38,7 @@ public class UserProfileService {
         return userProfileDAO.findById(UUID.fromString(id));
     }
 
-    @RequestMapping("/{id}/user/account")
+    @RequestMapping("/{id}/account")
     public UserAccount getUserAccount(@PathVariable("id") String id) {
         return userProfileDAO.findByIdUserAccount(UUID.fromString(id));
     }

@@ -25,7 +25,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:8081","http://localhost:8881"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+        configuration.setAllowedMethods(Arrays.asList("GET","POST","DELETE","PUT","PATCH"));
         configuration.setAllowCredentials(true);
         configuration.addAllowedHeader("Authorization");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -38,9 +38,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         // …
     }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception{
-        http.cors().and().authorizeRequests().antMatchers("/api/emails","/api/hello", "/api/newsletter").permitAll();
+        http.cors().and().csrf().disable().authorizeRequests().antMatchers("/api/emails", "/api/newsletter").permitAll();
     }
 
     @Override

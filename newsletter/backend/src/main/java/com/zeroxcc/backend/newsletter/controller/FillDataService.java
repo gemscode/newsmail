@@ -54,7 +54,7 @@ public class FillDataService {
     @PostConstruct
     @Transactional
     public void fillData() {
-        Account account = new Account();
+        /*Account account = new Account();
         account.setName("superuser");
 
         accountDAO.save(account);
@@ -156,6 +156,6 @@ public class FillDataService {
         todo.setTask(task);
         todo.setScheduledDate(LocalDateTime.now());
 
-        scheduleToDoDAO.save(todo);
+        scheduleToDoDAO.save(todo);*/
     }
 }
