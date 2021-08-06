@@ -140,7 +140,7 @@ public class NewsletterService {
     }
 
     private static final String FROM = "no-reply@feedback.rp78.zeroxcc.com";
-    private static final BasicAWSCredentials awsCreds = new BasicAWSCredentials("AKIAJRMEOET5JJXVP5TA", "hMpr+L1icJrUlK91lP/kR16LdVFjkdEIjjcv3P0s");
+    private static final BasicAWSCredentials awsCreds = new BasicAWSCredentials("x", "x");
     private static final AWSStaticCredentialsProvider awsCredsProvider = new AWSStaticCredentialsProvider(awsCreds);
 
     private String sentEmail(String emailAddress, String subscriptionTopic, String emailContentHTML) {
